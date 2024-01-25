@@ -25,20 +25,20 @@ class _TranspuestaState extends State<Transpuesta> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: TextField(
-              maxLines: 5,
+              maxLines: 4,
               controller: matrixController,
               decoration: const InputDecoration(
                 hintText: "Ingrese la matriz...",
                 border: OutlineInputBorder(),
               ),
               onChanged: (value) {
-                m = value;
+                processMatrix(value);
               },
             ),
           ),
           ElevatedButton(
             onPressed: () {
-              processMatrix(m);
+              //processMatrix(m);
               calculateTranspose();
             },
             child: const Text('Calcular Transpuesta'),
@@ -83,14 +83,11 @@ class _TranspuestaState extends State<Transpuesta> {
   void processMatrix(String input) {
     try {
       List<List<int>> result = [];
+      List<String> rows = input.split('\n');
 
-      List<String> rows = input.trim().split('\n');
       for (String row in rows) {
-        List<int> values = row
-            .trim()
-            .split('\t')
-            .map((value) => int.tryParse(value) ?? 0)
-            .toList();
+        List<int> values =
+            row.split('\t').map((e) => int.tryParse(e) ?? 0).toList();
         result.add(values);
       }
 
@@ -124,11 +121,12 @@ class _TranspuestaState extends State<Transpuesta> {
   void calculateTranspose() {
     List<List<int>> transpose = [];
 
-    if (matrix.isNotEmpty) {
-      for (int i = 0; i < matrix[0].length; i++) {
-        List<int> column = matrix.map((row) => row[i]).toList();
-        transpose.add(column);
+    for (int i = 0; i < matrix[0].length; i++) {
+      List<int> column = [];
+      for (int j = 0; j < matrix.length; j++) {
+        column.add(matrix[j][i]);
       }
+      transpose.add(column);
     }
 
     setState(() {
