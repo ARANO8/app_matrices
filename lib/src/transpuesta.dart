@@ -39,7 +39,7 @@ class _TranspuestaState extends State<Transpuesta> {
           ElevatedButton(
             onPressed: () {
               //processMatrix(m);
-              calculateTranspose();
+              calculateTranspose(matrix);
             },
             child: const Text('Calcular Transpuesta'),
           ),
@@ -82,17 +82,9 @@ class _TranspuestaState extends State<Transpuesta> {
 
   void processMatrix(String input) {
     try {
-      List<List<int>> result = [];
-      List<String> rows = input.split('\n');
-
-      for (String row in rows) {
-        List<int> values =
-            row.split('\t').map((e) => int.tryParse(e) ?? 0).toList();
-        result.add(values);
-      }
-
+      List<List<int>> matriz = procesarEntrada(input);
       setState(() {
-        matrix = result;
+        matrix = matriz;
       });
     } catch (e) {
       // Error al analizar números
@@ -118,17 +110,32 @@ class _TranspuestaState extends State<Transpuesta> {
     }
   }
 
-  void calculateTranspose() {
-    List<List<int>> transpose = [];
+  List<List<int>> procesarEntrada(String? entrada) {
+    List<List<int>> matriz = [];
 
-    for (int i = 0; i < matrix[0].length; i++) {
-      List<int> column = [];
-      for (int j = 0; j < matrix.length; j++) {
-        column.add(matrix[j][i]);
+    if (entrada != null) {
+      List<String> filas = entrada.split('\n');
+      for (String fila in filas) {
+        List<int> valoresFila =
+            fila.split('\t').map((e) => int.parse(e)).toList();
+        matriz.add(valoresFila);
       }
-      transpose.add(column);
     }
 
+    return matriz;
+  }
+
+  void calculateTranspose(List<List<int>> matriz) {
+    int filas = matriz.length;
+    int columnas = matriz[0].length;
+
+    List<List<int>> transpose =
+        List.generate(columnas, (index) => List.filled(filas, 0));
+    for (int i = 0; i < matriz.length; i++) {
+      for (int j = 0; j < matriz[i].length; j++) {
+        transpose[j][i] = matriz[i][j];
+      }
+    }
     setState(() {
       matrix = transpose;
     });
