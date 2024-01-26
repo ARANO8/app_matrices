@@ -11,7 +11,7 @@ class Transpuesta extends StatefulWidget {
 class _TranspuestaState extends State<Transpuesta> {
   TextEditingController matrixController = TextEditingController();
   List<List<int>> matrix = [];
-  String m = "";
+  String m = '''''';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,14 +32,14 @@ class _TranspuestaState extends State<Transpuesta> {
                 border: OutlineInputBorder(),
               ),
               onChanged: (value) {
-                processMatrix(value);
+                m = value;
               },
             ),
           ),
           ElevatedButton(
             onPressed: () {
-              //processMatrix(m);
-              calculateTranspose(matrix);
+              // processMatrix(m);
+              calculateTranspose(procesarEntrada(m));
             },
             child: const Text('Calcular Transpuesta'),
           ),
@@ -58,7 +58,7 @@ class _TranspuestaState extends State<Transpuesta> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Matriz transpuesta:',
+                    'matriz transpuesta:',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -67,10 +67,9 @@ class _TranspuestaState extends State<Transpuesta> {
                   const SizedBox(
                     height: 8,
                   ),
-                  for (int i = 0; i < matrix[0].length; i++)
+                  for (int i = 0; i < matrix.length; i++)
                     Text(
-                      matrix.map((row) => row[i].toString()).join('\t'),
-                      style: const TextStyle(fontSize: 16),
+                      matrix[i].join('\t'),
                     ),
                 ],
               ),
@@ -80,38 +79,38 @@ class _TranspuestaState extends State<Transpuesta> {
     );
   }
 
-  void processMatrix(String input) {
-    setState(() {
-      matrix=procesarEntrada(input);
-    });
-  }
-
   List<List<int>> procesarEntrada(String? entrada) {
-    List<List<int>> matriz = [];
-
+    List<List<int>> mat = [];
     if (entrada != null) {
       List<String> filas = entrada.split('\n');
       for (String fila in filas) {
         List<int> valoresFila =
-            fila.split('\t').map((e) => int.parse(e)).toList();
-        matriz.add(valoresFila);
+            fila.split(' ').map((e) => int.parse(e)).toList();
+        mat.add(valoresFila);
       }
     }
-
-    return matriz;
+    return mat;
   }
 
-  void calculateTranspose(List<List<int>> matriz) {
-    int filas = matriz.length;
-    int columnas = matriz[0].length;
+  void imprimirmatrix(List<List<int>> matrix) {
+    for (int i = 0; i < matrix.length; i++) {
+      print(matrix[i].join(' '));
+    }
+  }
+
+  void calculateTranspose(List<List<int>> matrix) {
+    int filas = matrix.length;
+    int columnas = matrix[0].length;
 
     List<List<int>> transpose =
         List.generate(columnas, (index) => List.filled(filas, 0));
-    for (int i = 0; i < matriz.length; i++) {
-      for (int j = 0; j < matriz[i].length; j++) {
-        transpose[j][i] = matriz[i][j];
+
+    for (int i = 0; i < matrix.length; i++) {
+      for (int j = 0; j < matrix[i].length; j++) {
+        transpose[j][i] = matrix[i][j];
       }
     }
+    print('calculo de transpuesta?');
     setState(() {
       matrix = transpose;
     });

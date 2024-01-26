@@ -39,8 +39,7 @@ class _InversaState extends State<Inversa> {
           ),
           ElevatedButton(
             onPressed: () {
-              processMatrix(m);
-              calculateInverse(matrix);
+              calculateInverse(procesarEntrada(m));
             },
             child: const Text('Calcular Inversa'),
           ),
@@ -59,7 +58,7 @@ class _InversaState extends State<Inversa> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Matriz Inversa:',
+                    'matriz Inversa:',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -68,10 +67,9 @@ class _InversaState extends State<Inversa> {
                   const SizedBox(
                     height: 8,
                   ),
-                  for (int i = 0; i < inv[0].length; i++)
+                  for (int i = 0; i < inv.length; i++)
                     Text(
-                      inv.map((row) => row[i].toString()).join('\t'),
-                      style: const TextStyle(fontSize: 16),
+                      inv[i].join('\t'),
                     ),
                 ],
               ),
@@ -81,25 +79,25 @@ class _InversaState extends State<Inversa> {
     );
   }
 
-  void processMatrix(String input) {
-    setState(() {
-      matrix = procesarEntrada(input);
-    });
-  }
+  // void processMatrix(String input) {
+  //   setState(() {
+  //     matrix = procesarEntrada(input);
+  //   });
+  // }
 
   List<List<int>> procesarEntrada(String? entrada) {
-    List<List<int>> matriz = [];
+    List<List<int>> matrix = [];
 
     if (entrada != null) {
       List<String> filas = entrada.split('\n');
       for (String fila in filas) {
         List<int> valoresFila =
-            fila.split('\t').map((e) => int.parse(e)).toList();
-        matriz.add(valoresFila);
+            fila.split(' ').map((e) => int.parse(e)).toList();
+        matrix.add(valoresFila);
       }
     }
 
-    return matriz;
+    return matrix;
   }
 
   //void _showAlert(String title, String message) {
@@ -129,13 +127,13 @@ class _InversaState extends State<Inversa> {
     int columnas = matrix[0].length;
 
     List<List<double>> inverse =
-        List.generate(columnas, (index) => List.filled(filas, 0));
+        List.generate(columnas, (index) => List.filled(filas, 0.0));
     int num = _calculateDeterminant(matrix);
     List<List<int>> adj = adjunta(matrix);
 
     for (int i = 0; i < adj.length; i++) {
       for (int j = 0; j < adj[i].length; j++) {
-        inverse[i][j] = num / adj[i][j];
+        inverse[i][j] = double.parse((adj[i][j] / num).toStringAsFixed(2));
       }
     }
 
@@ -205,15 +203,15 @@ class _InversaState extends State<Inversa> {
     return calculateTranspose(adjunta);
   }
 
-  List<List<int>> calculateTranspose(List<List<int>> matriz) {
-    int filas = matriz.length;
-    int columnas = matriz[0].length;
+  List<List<int>> calculateTranspose(List<List<int>> matrix) {
+    int filas = matrix.length;
+    int columnas = matrix[0].length;
 
     List<List<int>> transpose =
         List.generate(columnas, (index) => List.filled(filas, 0));
-    for (int i = 0; i < matriz.length; i++) {
-      for (int j = 0; j < matriz[i].length; j++) {
-        transpose[j][i] = matriz[i][j];
+    for (int i = 0; i < matrix.length; i++) {
+      for (int j = 0; j < matrix[i].length; j++) {
+        transpose[j][i] = matrix[i][j];
       }
     }
     return transpose;
