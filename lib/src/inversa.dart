@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:app_matrices/src/homescreen.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +12,8 @@ class Inversa extends StatefulWidget {
 
 class _InversaState extends State<Inversa> {
   TextEditingController matrixController = TextEditingController();
-  List<List<double>> matrix = [];
+  List<List<int>> matrix = [];
+  List<List<double>> inv = [];
   String m = "";
   @override
   Widget build(BuildContext context) {
@@ -37,14 +40,14 @@ class _InversaState extends State<Inversa> {
           ElevatedButton(
             onPressed: () {
               processMatrix(m);
-              calculateInverse();
+              calculateInverse(matrix);
             },
             child: const Text('Calcular Inversa'),
           ),
           const SizedBox(
             height: 16,
           ),
-          if (matrix.isNotEmpty)
+          if (inv.isNotEmpty)
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -65,9 +68,9 @@ class _InversaState extends State<Inversa> {
                   const SizedBox(
                     height: 8,
                   ),
-                  for (int i = 0; i < matrix[0].length; i++)
+                  for (int i = 0; i < inv[0].length; i++)
                     Text(
-                      matrix.map((row) => row[i].toString()).join('\t'),
+                      inv.map((row) => row[i].toString()).join('\t'),
                       style: const TextStyle(fontSize: 16),
                     ),
                 ],
@@ -79,99 +82,140 @@ class _InversaState extends State<Inversa> {
   }
 
   void processMatrix(String input) {
-    List<List<double>> result = [];
+    setState(() {
+      matrix = procesarEntrada(input);
+    });
+  }
 
-    List<String> rows = input.trim().split('\n');
-    int rowCount = rows.length;
-    int columnCount = 0;
+  List<List<int>> procesarEntrada(String? entrada) {
+    List<List<int>> matriz = [];
 
-    for (String row in rows) {
-      List<double> values = row
-          .trim()
-          .split('\t')
-          .map((value) => double.tryParse(value) ?? 0.0)
-          .toList();
-
-      // Verificar si todas las filas tienen la misma cantidad de columnas
-      if (columnCount == 0) {
-        columnCount = values.length;
-      } else if (columnCount != values.length) {
-        _showAlert("Error", "La matriz no es cuadrada.");
-        return;
+    if (entrada != null) {
+      List<String> filas = entrada.split('\n');
+      for (String fila in filas) {
+        List<int> valoresFila =
+            fila.split('\t').map((e) => int.parse(e)).toList();
+        matriz.add(valoresFila);
       }
-
-      result.add(values);
-    }
-    // Verificar si la matriz es cuadrada
-    if (rowCount != columnCount) {
-      _showAlert("Error", "La matriz no es cuadrada.");
-      return;
     }
 
-    // Verificar si el determinante es cero
-    double determinant = _calculateDeterminant(result);
-    if (determinant == 0) {
-      _showAlert("Error",
-          "La matriz no tiene inversa debido a que su determinante es cero.");
-      return;
+    return matriz;
+  }
+
+  //void _showAlert(String title, String message) {
+  //  showDialog(
+  //    context: context,
+  //    builder: (context) => AlertDialog(
+  //      title: Text(title),
+  //      content: Text(message),
+  //      actions: [
+  //        TextButton(
+  //          onPressed: () {
+  //            Navigator.pushAndRemoveUntil(
+  //              context,
+  //              MaterialPageRoute(builder: (context) => HomeScreen()),
+  //              (route) => false,
+  //            );
+  //          },
+  //          child: const Text("OK"),
+  //        ),
+  //      ],
+  //    ),
+  //  );
+  //}
+
+  void calculateInverse(List<List<int>> matrix) {
+    int filas = matrix.length;
+    int columnas = matrix[0].length;
+
+    List<List<double>> inverse =
+        List.generate(columnas, (index) => List.filled(filas, 0));
+    int num = _calculateDeterminant(matrix);
+    List<List<int>> adj = adjunta(matrix);
+
+    for (int i = 0; i < adj.length; i++) {
+      for (int j = 0; j < adj[i].length; j++) {
+        inverse[i][j] = num / adj[i][j];
+      }
     }
+
     setState(() {
-      matrix = result;
+      inv = inverse;
     });
   }
 
-  void _showAlert(String title, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => HomeScreen()),
-                (route) => false,
-              );
-            },
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
+  int _calculateDeterminant(List<List<int>> matrix) {
+    int size = matrix.length;
+
+    if (size == 1) {
+      return matrix[0][0];
+    }
+
+    if (size == 2) {
+      return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+    }
+
+    int determinant = 0;
+
+    for (int i = 0; i < size; i++) {
+      int sign = (i % 2 == 0) ? 1 : -1;
+      int cofactor = sign *
+          matrix[0][i] *
+          _calculateDeterminant(getSubmatrix(matrix, 0, i));
+      determinant += cofactor;
+    }
+
+    return determinant;
   }
 
-  void calculateInverse() {
-    double determinant = _calculateDeterminant(matrix);
+  List<List<int>> getSubmatrix(List<List<int>> matrix, int row, int col) {
+    int size = matrix.length;
+    List<List<int>> submatrix =
+        List.generate(size - 1, (i) => List.filled(size - 1, 0));
+    int f = 0;
+    for (int i = 0; i < matrix.length; i++) {
+      int c = 0;
+      if (i != row) {
+        for (int j = 0; j < matrix[i].length; j++) {
+          if (j != col) {
+            submatrix[f][c] = matrix[i][j];
+            c++;
+          }
+        }
 
-    List<List<double>> adjugate = _calculateAdjugate(matrix);
-    List<List<double>> inverse = _scalarMultiply(adjugate, 1 / determinant);
-
-    setState(() {
-      matrix = inverse;
-    });
+        f++;
+      }
+    }
+    return submatrix;
   }
 
-  double _calculateDeterminant(List<List<double>> mat) {
-    // Lógica para calcular el determinante (puede ser una implementación recursiva)
+  List<List<int>> adjunta(List<List<int>> matrix) {
+    int filas = matrix.length;
+    int columnas = matrix[0].length;
 
-    return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
+    List<List<int>> adjunta =
+        List.generate(columnas, (index) => List.filled(filas, 0));
+    for (int i = 0; i < matrix.length; i++) {
+      for (int j = 0; j < matrix[i].length; j++) {
+        int sign = pow(-1, i + j).toInt();
+        adjunta[i][j] =
+            sign * _calculateDeterminant(getSubmatrix(matrix, i, j));
+      }
+    }
+    return calculateTranspose(adjunta);
   }
 
-  List<List<double>> _calculateAdjugate(List<List<double>> mat) {
-    // Lógica para calcular la matriz adjunta
+  List<List<int>> calculateTranspose(List<List<int>> matriz) {
+    int filas = matriz.length;
+    int columnas = matriz[0].length;
 
-    return [
-      [mat[1][1], -mat[0][1]],
-      [-mat[1][0], mat[0][0]],
-    ];
-  }
-
-  List<List<double>> _scalarMultiply(List<List<double>> mat, double scalar) {
-    // Lógica para multiplicar una matriz por un escalar
-    return mat
-        .map((row) => row.map((value) => value * scalar).toList())
-        .toList();
+    List<List<int>> transpose =
+        List.generate(columnas, (index) => List.filled(filas, 0));
+    for (int i = 0; i < matriz.length; i++) {
+      for (int j = 0; j < matriz[i].length; j++) {
+        transpose[j][i] = matriz[i][j];
+      }
+    }
+    return transpose;
   }
 }

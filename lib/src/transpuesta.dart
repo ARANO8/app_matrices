@@ -81,33 +81,9 @@ class _TranspuestaState extends State<Transpuesta> {
   }
 
   void processMatrix(String input) {
-    try {
-      List<List<int>> matriz = procesarEntrada(input);
-      setState(() {
-        matrix = matriz;
-      });
-    } catch (e) {
-      // Error al analizar números
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Error'),
-          content: Text('Solo se admiten valores enteros en la matriz.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomeScreen()),
-                  (route) => false,
-                );
-              },
-              child: const Text("OK"),
-            ),
-          ],
-        ),
-      );
-    }
+    setState(() {
+      matrix=procesarEntrada(input);
+    });
   }
 
   List<List<int>> procesarEntrada(String? entrada) {
